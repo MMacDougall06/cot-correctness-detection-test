@@ -1,0 +1,17 @@
+In order for main.py to run, "hooks.py" in the accelerate package needs to be modified as below. This likely breaks an setup that uses multiprocessing for model running.
+
+In "add_hook_to_module" on ln 118 of hooks.py replace local function "new_forward" with
+
+@functools.wraps(old_forward)
+def new_forward(*args, **kwargs):
+    if 'transplant_dict' in kwargs:
+        transplant_dict = kwargs['transplant_dict']
+    args, kwargs = module._hf_hook.pre_forward(module, *args, **kwargs)
+    if 'transplant_dict' in kwargs:
+        kwargs['transplant_dict'] = transplant_dict
+    if module._hf_hook.no_grad:
+        with torch.no_grad():
+            output = old_forward(*args, **kwargs)
+    else:
+        output = old_forward(*args, **kwargs)
+    return module._hf_hook.post_forward(module, output)
