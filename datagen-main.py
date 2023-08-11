@@ -135,7 +135,7 @@ def get_right_answer(in_question, in_answer):
     generated_answer = complete(question_prompt)
     answer_pieces = generated_answer.split('"')
     generations_checked += 1
-    if len(answer_pieces) != 9-3:
+    if len(answer_pieces) != 6:
         if len(answer_pieces) == 4:
             # probably didn't enquote the number...
             try:
@@ -148,11 +148,11 @@ def get_right_answer(in_question, in_answer):
             return None
     else:
         try:
-            final_answer = to_float(answer_pieces[7-3])
+            final_answer = to_float(answer_pieces[4])
         except ValueError:
             generations_bad_format += 1
             return None
-    argument = answer_pieces[3-3].strip()
+    argument = answer_pieces[0].strip()
     is_correct = final_answer == to_float(in_answer)
     if is_correct:
         return str(final_answer), argument
@@ -165,15 +165,15 @@ def get_wrong_answer(in_question, in_answer):
     generated_answer = complete(question_prompt)
     answer_pieces = generated_answer.split('"')
     generations_checked += 1
-    if len(answer_pieces) != 9-3:
+    if len(answer_pieces) != 6:
         generations_bad_format += 1
         return None
     try:
-        final_answer = to_float(answer_pieces[3-3])
+        final_answer = to_float(answer_pieces[0])
     except ValueError:
         generations_bad_format += 1
         return None
-    argument = answer_pieces[7-3].strip()
+    argument = answer_pieces[4].strip()
     is_correct = final_answer == to_float(in_answer)
     if not is_correct:
         return str(final_answer), argument
@@ -192,10 +192,10 @@ def main():
         'singleq.json',
         'simuleq.json',
     }
-    lila_data = hfds_load('allenai/lila', 'iid', cache_dir='/mnt/wsl/morestuff/hf_datasets') \
+    lila_data = hfds_load('allenai/lila', 'iid') \
         .filter(lambda x: x['dataset'] in DATASET_NAMES) \
         .shuffle(seed=1)
-    # bigbench_data = hfds_load('tasksource/bigbench','elementary_math_qa', cache_dir='/mnt/wsl/morestuff/hf_datasets')
+    # bigbench_data = hfds_load('tasksource/bigbench','elementary_math_qa')
 
     entries_output = 0
 
@@ -203,7 +203,7 @@ def main():
 
     LOG_INTERVAL = 1
 
-    OUTPUT_DIR = 'data/unmasked/'
+    OUTPUT_DIR = 'data/'
     OUTPUT_FILE = 'dataset.csv'
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -230,14 +230,14 @@ def main():
                 generated_answer = complete(choice_prompt)
                 answer_pieces = generated_answer.split('"')
                 generations_checked += 1
-                if len(answer_pieces) != 9-3:
+                if len(answer_pieces) != 6:
                     generations_bad_format += 1
                     continue
-                generated_choice = answer_pieces[7-3].strip()
+                generated_choice = answer_pieces[4].strip()
                 if generated_choice != 'candidate_1' and generated_choice != 'candidate_2':
                     generations_bad_format += 1
                     continue
-                argument = answer_pieces[3-3].strip()
+                argument = answer_pieces[0].strip()
                 answer_choice = (generated_choice, argument, swap_answer_order)
 
                 new_output = [escape_newlines(s) for s in chain((entry['input'],), correct_answer, incorrect_answer, answer_choice)]

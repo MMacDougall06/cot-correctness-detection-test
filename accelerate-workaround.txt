@@ -1,4 +1,4 @@
-In order for main.py to run, "hooks.py" in the accelerate package needs to be modified as below. This likely breaks an setup that uses multiprocessing for model running.
+In order for main.py to run, "hooks.py" in the accelerate package needs to be modified as below. This likely breaks any setup that uses multiprocessing for model running.
 
 In "add_hook_to_module" on ln 118 of hooks.py replace local function "new_forward" with
 
